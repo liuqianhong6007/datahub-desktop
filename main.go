@@ -4,6 +4,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -11,6 +12,8 @@ func main() {
 	a := app.New()
 	window := a.NewWindow(WindowTitle)
 	window.Resize(fyne.NewSize(WindowWidth, WindowHeight))
+
+	SetFakeData()
 
 	commitTypes := widget.NewList(
 		func() int {
@@ -30,20 +33,22 @@ func main() {
 
 	list2 := widget.NewTree(
 		func(uid string) (children []string) {
+			var err error
 			switch uid {
 			case "Branches":
-				children = append(children, Branches...)
+				children, err = branchList.Get()
 			case "Remotes":
-				children = append(children, Remotes...)
+				children, err = remoteList.Get()
 			case "Tags":
-				children = append(children, Tags...)
+				children, err = tagList.Get()
 			case "Stashes":
-				children = append(children, Stashes...)
+				children, err = stashList.Get()
 			case "Submodules":
-				children = append(children, Submodules...)
+				children, err = submoduleList.Get()
 			default:
 				children = append(children, "Branches", "Remotes", "Tags", "Stashes", "Submodules")
 			}
+			checkErr(err)
 			return
 		},
 		func(uid string) bool {
@@ -83,12 +88,30 @@ var (
 	}
 )
 
-var treeMap = make(map[string]string)
-
 var (
-	Branches   = []string{"master", "develop"}
-	Remotes    = []string{"origin/master", "origin/develop"}
-	Tags       = []string{"0.1.0", "0.2.0"}
-	Stashes    = []string{"保存代码1"}
-	Submodules []string
+	branchList    = binding.NewStringList()
+	remoteList    = binding.NewStringList()
+	tagList       = binding.NewStringList()
+	stashList     = binding.NewStringList()
+	submoduleList = binding.NewStringList()
 )
+
+func SetFakeData() {
+	err := branchList.Set([]string{"master", "develop"})
+	checkErr(err)
+
+	err = remoteList.Set([]string{"origin/master", "origin/develop"})
+	checkErr(err)
+
+	err = tagList.Set([]string{"0.1.0", "0.2.0"})
+	checkErr(err)
+
+	err = stashList.Set([]string{"保存代码1"})
+	checkErr(err)
+}
+
+func checkErr(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
